@@ -1,6 +1,8 @@
 # Annoscope
 
-<img src="app/static/icon-large.svg" alt="Annoscope" width="180"/>
+<div align="center">
+  <img src="app/static/icon-large.svg" alt="Annoscope" width="180"/>
+</div>
 
 A fast, local-first dataset audit and annotation review tool for computer vision projects.
 
