@@ -1,15 +1,25 @@
 from __future__ import annotations
+
 from pathlib import Path
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from PIL import Image as PILImage
+
 from app.config import config
-from app.state import active_dataset
-from app.database import update_state, add_staged_edit, get_staged_edits, clear_staged_edits, remove_staged_edit
+from app.database import (
+    add_staged_edit,
+    clear_staged_edits,
+    get_staged_edits,
+    remove_staged_edit,
+    update_state,
+)
 from app.schemas import EditAction
+from app.state import active_dataset
 
 # EXIF orientation values where width and height are swapped vs raw pixel layout
 _EXIF_SWAP = {5, 6, 7, 8}
+
 
 def _image_info(path: Path) -> tuple[int, int, int]:
     """Return (display_width, display_height, exif_orientation).
@@ -27,15 +37,19 @@ def _image_info(path: Path) -> tuple[int, int, int]:
     except Exception:
         return 0, 0, 1
 
+
 router = APIRouter()
+
 
 @router.get("/")
 def index():
     return FileResponse(Path(__file__).parent / "static" / "index.html")
 
+
 @router.get("/api/datasets")
 def list_datasets():
     return [{"name": d.name, "slug": d.slug} for d in config.datasets]
+
 
 @router.post("/api/switch/{slug}")
 def switch_dataset(slug: str):
@@ -46,9 +60,11 @@ def switch_dataset(slug: str):
             raise HTTPException(status_code=404, detail=str(e))
     return active_dataset.get_initial_state()
 
+
 @router.get("/api/images")
 def list_images():
     return active_dataset.get_initial_state()
+
 
 @router.get("/api/annotations/{filename}")
 def get_annotations(filename: str):
@@ -126,22 +142,24 @@ def get_annotations(filename: str):
         "edits": get_staged_edits(active_dataset.slug, filename),
     }
 
+
 @router.post("/api/edit/{filename}")
 def edit_annotation(filename: str, edit: EditAction):
     """action: 'add' | 'delete' | 'move'"""
     if filename not in active_dataset.all_images:
         raise HTTPException(status_code=404, detail="Image not found")
-    
+
     add_staged_edit(active_dataset.slug, filename, edit.action, edit.data)
     return {"ok": True, "edits": get_staged_edits(active_dataset.slug, filename)}
+
 
 @router.post("/api/edit/{filename}/clear")
 def clear_edits(filename: str):
     clear_staged_edits(active_dataset.slug, filename)
     return {"ok": True, "edits": []}
 
+
 @router.delete("/api/edit/{filename}/{edit_id}")
 def delete_single_edit(filename: str, edit_id: int):
     remove_staged_edit(edit_id, active_dataset.slug, filename)
     return {"ok": True, "edits": get_staged_edits(active_dataset.slug, filename)}
-

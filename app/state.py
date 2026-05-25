@@ -1,8 +1,11 @@
 from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Set, Any, Optional
-from app.config import config, IMAGE_EXTS
+from typing import Any, Dict, List, Optional, Set
+
+from app.config import IMAGE_EXTS, config
 from app.database import get_db_state
+
 
 class ActiveDataset:
     def __init__(self):
@@ -42,6 +45,7 @@ class ActiveDataset:
         has_coco = bool(coco_path and coco_path.exists())
         if has_coco:
             import json
+
             coco = json.loads(coco_path.read_text())
             img_by_filename = {img["file_name"]: img for img in coco["images"]}
             for ann in coco["annotations"]:
@@ -84,6 +88,7 @@ class ActiveDataset:
             "seen": sorted(list(self.seen)),
             "last_seen_index": max(seen_indices) if seen_indices else 0,
         }
+
 
 # Singleton instance
 active_dataset = ActiveDataset()

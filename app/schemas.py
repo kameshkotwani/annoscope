@@ -1,6 +1,9 @@
 from __future__ import annotations
-from typing import Dict, List, Literal, Optional, Any
-from pydantic import BaseModel, Field
+
+from typing import Any, Dict, List, Literal
+
+from pydantic import BaseModel
+
 
 class YoloBox(BaseModel):
     line_index: int
@@ -11,6 +14,7 @@ class YoloBox(BaseModel):
     w: float
     h: float
 
+
 class CocoBox(BaseModel):
     ann_id: int
     category_id: int
@@ -20,10 +24,12 @@ class CocoBox(BaseModel):
     w: float
     h: float
 
+
 class StagedEdit(BaseModel):
     id: int
     action: str
     data: Dict[str, Any]
+
 
 class AnnotationResponse(BaseModel):
     filename: str
@@ -35,9 +41,11 @@ class AnnotationResponse(BaseModel):
     coco: List[CocoBox]
     edits: List[StagedEdit]
 
+
 class DatasetInfo(BaseModel):
     name: str
     slug: str
+
 
 class InitialState(BaseModel):
     slug: str
@@ -45,6 +53,7 @@ class InitialState(BaseModel):
     seen: List[str]
     last_seen_index: int
 
+
 class EditAction(BaseModel):
-    action: Literal['add', 'delete', 'move']
+    action: Literal["add", "delete", "move"]
     data: Dict[str, Any]

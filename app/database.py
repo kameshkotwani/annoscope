@@ -1,7 +1,9 @@
 import json
 import sqlite3
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from app.config import DB_PATH
+
 
 def init_db():
     """Initialize SQLite database for review state."""
@@ -28,7 +30,9 @@ def init_db():
             )
         """)
 
-_VALID_STATE_FIELDS = {'seen'}
+
+_VALID_STATE_FIELDS = {"seen"}
+
 
 def update_state(slug: str, filename: str, field: str, value: bool):
     if field not in _VALID_STATE_FIELDS:
@@ -43,6 +47,7 @@ def update_state(slug: str, filename: str, field: str, value: bool):
             (slug, filename, value),
         )
 
+
 def get_db_state(slug: str):
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
@@ -51,6 +56,7 @@ def get_db_state(slug: str):
             (slug,),
         ).fetchall()
         return rows
+
 
 def add_staged_edit(slug: str, filename: str, action: str, data: dict):
     with sqlite3.connect(DB_PATH) as conn:
@@ -62,6 +68,7 @@ def add_staged_edit(slug: str, filename: str, action: str, data: dict):
             (slug, filename, action, json.dumps(data)),
         )
 
+
 def get_staged_edits(slug: str, filename: str) -> List[Dict[str, Any]]:
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
@@ -72,15 +79,15 @@ def get_staged_edits(slug: str, filename: str) -> List[Dict[str, Any]]:
         """,
             (slug, filename),
         ).fetchall()
-        return [
-            {"id": r["id"], "action": r["action"], "data": json.loads(r["data"])} for r in rows
-        ]
+        return [{"id": r["id"], "action": r["action"], "data": json.loads(r["data"])} for r in rows]
+
 
 def clear_staged_edits(slug: str, filename: str):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
             "DELETE FROM staged_edits WHERE dataset_slug = ? AND filename = ?", (slug, filename)
         )
+
 
 def remove_staged_edit(edit_id: int, slug: str, filename: str):
     with sqlite3.connect(DB_PATH) as conn:
