@@ -57,3 +57,4 @@ pyrightconfig.json
 # uv
 .uv/
 uv.lock
+CLAUDE.md
