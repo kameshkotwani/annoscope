@@ -1,5 +1,7 @@
 # Annoscope
 
+<img src="app/static/icon.svg" alt="Annoscope icon" width="80"/>
+
 A fast, local-first dataset audit and annotation review tool for computer vision projects.
 
 ## The Problem
