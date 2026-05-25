@@ -130,6 +130,15 @@ def get_annotations(filename: str):
     active_dataset.seen.add(filename)
     update_state(active_dataset.slug, filename, "seen", True)
 
+    edits = get_staged_edits(active_dataset.slug, filename)
+
+    # apply persisted move edits so UI shows staged positions on reload
+    move_map = {e["data"]["line_index"]: e["data"] for e in edits if e["action"] == "move"}
+    for box in yolo_boxes:
+        if box["line_index"] in move_map:
+            m = move_map[box["line_index"]]
+            box["cx"], box["cy"], box["w"], box["h"] = m["cx"], m["cy"], m["w"], m["h"]
+
     return {
         "filename": filename,
         "width": iw,
@@ -139,7 +148,7 @@ def get_annotations(filename: str):
         "yolo": yolo_boxes,
         "yolo_warnings": yolo_warnings,
         "coco": coco_boxes,
-        "edits": get_staged_edits(active_dataset.slug, filename),
+        "edits": edits,
     }
 
 

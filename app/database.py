@@ -60,11 +60,18 @@ def get_db_state(slug: str):
 
 def add_staged_edit(slug: str, filename: str, action: str, data: dict):
     with sqlite3.connect(DB_PATH) as conn:
+        if action == "move" and "line_index" in data:
+            # one move per line_index — delete old, insert new
+            conn.execute(
+                """
+                DELETE FROM staged_edits
+                WHERE dataset_slug = ? AND filename = ? AND action = 'move'
+                AND json_extract(data, '$.line_index') = ?
+                """,
+                (slug, filename, data["line_index"]),
+            )
         conn.execute(
-            """
-            INSERT INTO staged_edits (dataset_slug, filename, action, data)
-            VALUES (?, ?, ?, ?)
-        """,
+            "INSERT INTO staged_edits (dataset_slug, filename, action, data) VALUES (?, ?, ?, ?)",
             (slug, filename, action, json.dumps(data)),
         )
 

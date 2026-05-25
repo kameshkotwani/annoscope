@@ -153,7 +153,7 @@ function attachStageEvents(stageId) {
         stage.container().style.cursor = 'grab';
     });
 
-    stage.on('dblclick', () => resetView());
+
     stage.container().style.cursor = 'grab';
 }
 
@@ -264,7 +264,7 @@ function makeBoxGroup(stageId, box, source, idx, pos, isDeleted) {
         hovered = { stageId, source, idx };
         updateBoxVisual(stageId, source, idx);
         showTooltip(e.evt, box, source);
-        stageMap[stageId].stage.container().style.cursor = 'pointer';
+        stageMap[stageId].stage.container().style.cursor = editMode && !isDeleted ? 'move' : 'pointer';
     });
     rect.on('mousemove', e => { showTooltip(e.evt, box, source); });
     rect.on('mouseleave', () => {
@@ -283,6 +283,43 @@ function makeBoxGroup(stageId, box, source, idx, pos, isDeleted) {
         }
         updateAllBoxSelections();
     });
+
+    if (editMode && !isDeleted && source === 'yolo' && stageId === 'stage-yolo-source') {
+        group.draggable(true);
+
+        group.dragBoundFunc(pos => {
+            const fit = stageMap[stageId].fit;
+            if (!fit) return pos;
+            const scale = stageMap[stageId].stage.scaleX();
+            const stagePos = stageMap[stageId].stage.position();
+            // pos is in absolute (screen) coords — convert to layer space, clamp, convert back
+            const lx = (pos.x - stagePos.x) / scale;
+            const ly = (pos.y - stagePos.y) / scale;
+            const cx = Math.max(fit.ox, Math.min(lx, fit.ox + fit.imgW * fit.bs - w));
+            const cy = Math.max(fit.oy, Math.min(ly, fit.oy + fit.imgH * fit.bs - h));
+            return { x: cx * scale + stagePos.x, y: cy * scale + stagePos.y };
+        });
+
+        group.on('dragstart', () => {
+            isPanning = false;
+            panMoved  = false;
+            hideTooltip();
+            selection = { stageId, source, idx };
+            updateAllBoxSelections();
+            stageMap[stageId].stage.container().style.cursor = 'grabbing';
+        });
+
+        group.on('dragend', () => {
+            isPanning = false;
+            panMoved  = false;
+            const fit = stageMap[stageId].fit;
+            if (!fit || !currentFilename) return;
+            stageMap[stageId].stage.container().style.cursor = 'move';
+            const newCx = ((group.x() - fit.ox) / fit.bs + box.w * fit.imgW / 2) / fit.imgW;
+            const newCy = ((group.y() - fit.oy) / fit.bs + box.h * fit.imgH / 2) / fit.imgH;
+            moveBox(box, newCx, newCy);
+        });
+    }
 
     return group;
 }
@@ -501,6 +538,7 @@ function setEditMode(val) {
     document.body.classList.toggle('edit-mode-active', editMode);
     btnEditMode.classList.toggle('active', editMode);
     btnEditMode.textContent = editMode ? 'Edit Mode: ON' : 'Edit Mode: OFF';
+    redraw();
 }
 
 function setOverlayMode(val) {
@@ -755,6 +793,34 @@ async function clearCurrentEdits() {
         if (data.ok) { currentEdits = []; selection = null; redraw(); }
     } catch (err) {
         console.error('Failed to clear edits:', err);
+    }
+}
+
+async function moveBox(box, newCx, newCy) {
+    if (!currentFilename) return;
+    const payload = {
+        action: 'move',
+        data: { source: 'yolo', line_index: box.line_index, cx: newCx, cy: newCy, w: box.w, h: box.h },
+    };
+    // update in-memory coords immediately so redraw uses new position
+    const oldCx = box.cx, oldCy = box.cy;
+    box.cx = newCx;
+    box.cy = newCy;
+    currentEdits.push(payload);
+    try {
+        const res  = await fetch(`/api/edit/${encodeURIComponent(currentFilename)}`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (data.ok) { currentEdits = data.edits; redraw(); }
+    } catch (err) {
+        console.error('Failed to move box:', err);
+        box.cx = oldCx;
+        box.cy = oldCy;
+        currentEdits.pop();
+        redraw();
     }
 }
 
