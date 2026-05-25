@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AnnoSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ── Tabs ─────────────────────────────────────────────────────────────────── -->
+<div id="tabs">
+  <button class="tab active" data-tab="viewer">Dataset Cleaner</button>
+  <button class="tab"        data-tab="comparison">Format Comparison</button>
+</div>
+
+<!-- ── Shared topbar ─────────────────────────────────────────────────────────── -->
+<div id="topbar">
+  <span id="filename">—</span>
+  <span id="box-info"></span>
+  <span id="progress"></span>
+  <div id="nav">
+    <button id="btn-prev">◀ Prev</button>
+    <button id="btn-next">Next ▶</button>
+    <button id="btn-edit-mode">Edit Mode: OFF</button>
+    <button id="btn-clear-edits" title="Remove all staged edits for this image">Clear Edits</button>
+    <button id="btn-overlay" style="display:none">Overlay: OFF</button>
+  </div>
+</div>
+
+<!-- ── Shared body: sidebar + tab content ───────────────────────────────────── -->
+<div id="main-body">
+
+  <div id="sidebar">
+    <div id="sidebar-top">
+      <select id="dataset-select"></select>
+      <input id="search" type="text" placeholder="Search filename…">
+      <div id="img-count">0 image(s)</div>
+    </div>
+    <div id="img-list"></div>
+  </div>
+
+  <div id="tab-content">
+
+    <!-- Viewer panels (Dataset Cleaner) -->
+    <div id="viewer-panels">
+      <div class="panel" id="panel-yolo-source">
+        <div class="panel-title yolo-title">Current YOLO (Source + Edits)</div>
+        <div class="canvas-wrap"><div id="stage-yolo-source"></div></div>
+      </div>
+      <div class="panel" id="panel-yolo-final">
+        <div class="panel-title final-title">Final YOLO (Clean Preview)</div>
+        <div class="canvas-wrap"><div id="stage-yolo-final"></div></div>
+      </div>
+    </div>
+
+    <!-- Comparison panels (Format Comparison, side-by-side) -->
+    <div id="comparison-panels" style="display:none">
+      <div class="panel" id="panel-comp-yolo">
+        <div class="panel-title yolo-title">YOLO annotations</div>
+        <div class="canvas-wrap"><div id="stage-comp-yolo"></div></div>
+      </div>
+      <div class="panel" id="panel-comp-coco">
+        <div class="panel-title coco-title" id="coco-panel-title">COCO annotations</div>
+        <div class="canvas-wrap"><div id="stage-comp-coco"></div></div>
+      </div>
+    </div>
+
+    <!-- Overlay panel (Format Comparison, full-width) -->
+    <div id="overlay-panel-wrap" style="display:none">
+      <div class="panel" id="panel-overlay">
+        <div class="panel-title overlay-title">Overlay — YOLO (solid) + COCO (dashed)</div>
+        <div class="canvas-wrap"><div id="stage-overlay"></div></div>
+      </div>
+    </div>
+
+  </div><!-- end tab-content -->
+
+</div><!-- end main-body -->
+
+<div id="tooltip"></div>
+
+<div id="hint">
+  ← → navigate &nbsp;|&nbsp;
+  E = toggle Edit Mode &nbsp;|&nbsp;
+  Delete = remove / restore box &nbsp;|&nbsp;
+  R = reset view &nbsp;|&nbsp;
+  scroll = zoom &nbsp;|&nbsp;
+  drag = pan &nbsp;|&nbsp;
+  dblclick = reset view
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/konva@9.3.18/konva.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #141414;
+  color: #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── tabs ────────────────────────────────────────── */
+#tabs { display:flex; gap:0; background:#0a0a0a; border-bottom:1px solid #2a2a2a; flex-shrink:0; }
+.tab  { padding:7px 20px; background:transparent; border:none; border-bottom:2px solid transparent;
+        color:#888; font-size:12px; font-family:inherit; cursor:pointer; }
+.tab:hover  { color:#ccc; }
+.tab.active { color:#fff; border-bottom-color:#4CAF50; }
+
+/* ── top bar ─────────────────────────────────────── */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 14px;
+  background: #0e0e0e;
+  border-bottom: 1px solid #2a2a2a;
+  flex-shrink: 0;
+}
+#filename { font-size: 13px; font-weight: 600; color: #fff; font-family: 'JetBrains Mono', monospace; }
+#box-info { font-size: 12px; color: #bbb; }
+#progress { font-size: 12px; color: #aaa; background: #1e1e1e; padding: 3px 10px; border-radius: 10px; }
+
+/* ── edit mode visual ────────────────────────────── */
+body.edit-mode-active #topbar {
+  background: #450a0a;
+  border-bottom-color: #991b1b;
+}
+body.edit-mode-active .panel {
+  border-color: #991b1b;
+}
+body.edit-mode-active .panel-title {
+  background: #450a0a;
+  border-bottom-color: #991b1b;
+}
+
+#nav { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+
+button {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+}
+button:disabled { opacity: 0.35; cursor: not-allowed; }
+#btn-overlay               { background: #2a2a2a; color: #ccc; }
+#btn-overlay:hover         { background: #3a3a3a; }
+#btn-overlay.active        { background: #b45309; color: #fff; }
+#btn-edit-mode             { background: #2a2a2a; color: #ccc; }
+#btn-edit-mode:hover       { background: #3a3a3a; }
+#btn-edit-mode.active      { background: #b91c1c; color: #fff; }
+#btn-clear-edits           { background: #4b5563; color: #fff; }
+#btn-clear-edits:hover     { background: #374151; }
+#btn-prev, #btn-next       { background: #2a2a2a; color: #ccc; }
+#btn-prev:hover, #btn-next:hover { background: #3a3a3a; }
+
+/* ── shared body layout ──────────────────────────── */
+#main-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── sidebar ─────────────────────────────────────── */
+#sidebar {
+  width: 210px;
+  background: #0e0e0e;
+  border-right: 1px solid #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+#sidebar-top { padding: 8px; border-bottom: 1px solid #2a2a2a; flex-shrink: 0; }
+
+#dataset-select, #search {
+  width: 100%;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  color: #ddd;
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 2px;
+  margin-bottom: 4px;
+}
+
+#img-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.item {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #aaa;
+}
+.item:hover  { background: #1a1a1a; color: #fff; }
+.item.active { background: #1e1e1e; color: #fff; border-left: 3px solid #4CAF50; }
+.item.seen   { opacity: 0.6; }
+
+/* ── tab content area ────────────────────────────── */
+#tab-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#viewer-panels,
+#comparison-panels,
+#overlay-panel-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+  height: 100%;
+  background: #141414;
+}
+
+#overlay-panel-wrap {
+  grid-template-columns: 1fr;
+}
+
+/* ── panels ──────────────────────────────────────── */
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  border: 1px solid #222;
+  overflow: hidden;
+  height: 100%;
+}
+
+.panel-title {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  border-bottom: 1px solid #222;
+  flex-shrink: 0;
+}
+.yolo-title    { color: #4CAF50; }
+.final-title   { color: #f4a261; }
+.coco-title    { color: #457B9D; }
+.overlay-title { color: #a8dadc; }
+
+.canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+/* Konva stage containers fill their canvas-wrap parent */
+[id^="stage-"] {
+  width: 100%;
+  height: 100%;
+}
+
+#tooltip {
+  position: fixed; display: none; pointer-events: none;
+  background: rgba(0,0,0,0.9); border: 1px solid #444;
+  padding: 4px 8px; font-size: 11px; color: #fff; z-index: 1000;
+}
+
+#hint {
+  padding: 3px 12px; font-size: 10px; color: #666;
+  background: #0a0a0a; border-top: 1px solid #1a1a1a;
+}
