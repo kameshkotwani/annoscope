@@ -23,7 +23,6 @@ Thanks for your interest in contributing. Annoscope is a focused tool — local-
 
 Before contributing, understand what Annoscope is *not*:
 
-- **Not a labelling platform.** CVAT and Label Studio exist for creation. Annoscope is for reviewing work already done.
 - **Not a heavy stack.** No ORMs, no build pipeline, no framework bloat. Changes that add significant dependencies will not be merged.
 - **Not network-dependent.** Zero external calls at runtime. Keep it that way.
 
