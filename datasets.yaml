@@ -7,8 +7,6 @@ datasets:
     labels:  data/labels/
     # Absolute or repo-relative path to the COCO annotations JSON file (null if unavailable)
     coco:    data/annotations.json
-    # Absolute or repo-relative path to the reports output directory
-    reports: reports/
     classes:
       0: ClassA
       1: ClassB

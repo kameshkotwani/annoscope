@@ -20,6 +20,10 @@
 <!-- ── Shared topbar ─────────────────────────────────────────────────────────── -->
 <div id="topbar">
   <span id="filename">—</span>
+  <span id="exif-badge" style="display:none">
+    ⟳ EXIF rotated
+    <span class="exif-tip">ⓘ<span class="exif-tip-text">This image has embedded EXIF rotation metadata. The browser displays it correctly, and all bounding box coordinates are already in display-space. Export will physically rotate the pixel data and strip the EXIF tag so downstream tools (OpenCV, YOLO trainers) see consistent orientation.</span></span>
+  </span>
   <span id="box-info"></span>
   <span id="progress"></span>
   <div id="nav">

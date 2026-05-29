@@ -47,6 +47,7 @@ const btnEditMode      = document.getElementById('btn-edit-mode');
 const btnOverlay       = document.getElementById('btn-overlay');
 const elTooltip        = document.getElementById('tooltip');
 const elFilename       = document.getElementById('filename');
+const elExifBadge      = document.getElementById('exif-badge');
 const elBoxInfo        = document.getElementById('box-info');
 const elProgress       = document.getElementById('progress');
 const elImgCount       = document.getElementById('img-count');
@@ -631,7 +632,14 @@ async function loadImage(filename) {
     let data;
     try {
         const res = await fetch(`/api/annotations/${encodeURIComponent(filename)}`);
-        if (!res.ok) { elBoxInfo.textContent = `Error ${res.status} loading annotations`; return; }
+        if (!res.ok) {
+            let detail = `Error ${res.status}`;
+            try { const body = await res.json(); if (body.detail) detail = body.detail; } catch (_) {}
+            elBoxInfo.textContent = res.status === 500
+                ? `${detail} — click "Clear Edits" to recover`
+                : detail;
+            return;
+        }
         data = await res.json();
     } catch (err) {
         elBoxInfo.textContent = 'Network error loading annotations';
@@ -641,6 +649,7 @@ async function loadImage(filename) {
     currentImgWidth   = data.width;
     currentImgHeight  = data.height;
     currentExifOrient = data.exif_orientation ?? 1;
+    elExifBadge.style.display = currentExifOrient !== 1 ? 'inline' : 'none';
     currentYolo       = data.yolo;
     currentEdits      = data.edits || [];
 
@@ -689,9 +698,10 @@ function applyInitialState(data) {
 
 async function switchDataset(slug) {
     resetImageState();
-    elFilename.textContent = '—';
-    elBoxInfo.textContent  = '';
-    elProgress.textContent = '';
+    elFilename.textContent     = '—';
+    elExifBadge.style.display  = 'none';
+    elBoxInfo.textContent      = '';
+    elProgress.textContent     = '';
     try {
         const res = await fetch(`/api/switch/${slug}`, { method: 'POST' });
         if (!res.ok) { elFilename.textContent = `Error switching dataset (${res.status})`; return; }
@@ -790,7 +800,13 @@ async function clearCurrentEdits() {
     try {
         const res  = await fetch(`/api/edit/${encodeURIComponent(currentFilename)}/clear`, { method: 'POST' });
         const data = await res.json();
-        if (data.ok) { currentEdits = []; selection = null; redraw(); }
+        if (data.ok) {
+            currentEdits = [];
+            selection = null;
+            const filename = currentFilename;
+            currentFilename = null;  // force loadImage to re-fetch
+            loadImage(filename);
+        }
     } catch (err) {
         console.error('Failed to clear edits:', err);
     }

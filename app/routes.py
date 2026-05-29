@@ -11,8 +11,8 @@ from app.database import (
     add_staged_edit,
     clear_staged_edits,
     get_staged_edits,
+    mark_seen,
     remove_staged_edit,
-    update_state,
 )
 from app.schemas import EditAction
 from app.state import active_dataset
@@ -128,9 +128,12 @@ def get_annotations(filename: str):
             )
 
     active_dataset.seen.add(filename)
-    update_state(active_dataset.slug, filename, "seen", True)
+    mark_seen(active_dataset.slug, filename)
 
-    edits = get_staged_edits(active_dataset.slug, filename)
+    try:
+        edits = get_staged_edits(active_dataset.slug, filename)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     # apply persisted move edits so UI shows staged positions on reload
     move_map = {e["data"]["line_index"]: e["data"] for e in edits if e["action"] == "move"}
