@@ -6,16 +6,12 @@ from app.config import DB_PATH
 
 
 def init_db():
-    """Initialize SQLite database for review state."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("""
-            CREATE TABLE IF NOT EXISTS image_state (
+            CREATE TABLE IF NOT EXISTS seen (
                 dataset_slug TEXT,
-                filename TEXT,
-                seen BOOLEAN DEFAULT 0,
-                bad_yolo BOOLEAN DEFAULT 0,
-                bad_coco BOOLEAN DEFAULT 0,
+                filename     TEXT,
                 PRIMARY KEY (dataset_slug, filename)
             )
         """)
@@ -31,31 +27,21 @@ def init_db():
         """)
 
 
-_VALID_STATE_FIELDS = {"seen"}
-
-
-def update_state(slug: str, filename: str, field: str, value: bool):
-    if field not in _VALID_STATE_FIELDS:
-        raise ValueError(f"Invalid field: {field}")
+def mark_seen(slug: str, filename: str):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
-            f"""
-            INSERT INTO image_state (dataset_slug, filename, {field})
-            VALUES (?, ?, ?)
-            ON CONFLICT(dataset_slug, filename) DO UPDATE SET {field} = excluded.{field}
-        """,
-            (slug, filename, value),
+            "INSERT OR IGNORE INTO seen (dataset_slug, filename) VALUES (?, ?)",
+            (slug, filename),
         )
 
 
-def get_db_state(slug: str):
+def get_seen(slug: str) -> set[str]:
     with sqlite3.connect(DB_PATH) as conn:
-        conn.row_factory = sqlite3.Row
         rows = conn.execute(
-            "SELECT filename, seen FROM image_state WHERE dataset_slug = ?",
+            "SELECT filename FROM seen WHERE dataset_slug = ?",
             (slug,),
         ).fetchall()
-        return rows
+        return {r[0] for r in rows}
 
 
 def add_staged_edit(slug: str, filename: str, action: str, data: dict):
@@ -86,7 +72,14 @@ def get_staged_edits(slug: str, filename: str) -> List[Dict[str, Any]]:
         """,
             (slug, filename),
         ).fetchall()
-        return [{"id": r["id"], "action": r["action"], "data": json.loads(r["data"])} for r in rows]
+        result = []
+        for r in rows:
+            try:
+                data = json.loads(r["data"])
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Corrupt edit row id={r['id']} for {filename}: {e}") from e
+            result.append({"id": r["id"], "action": r["action"], "data": data})
+        return result
 
 
 def clear_staged_edits(slug: str, filename: str):

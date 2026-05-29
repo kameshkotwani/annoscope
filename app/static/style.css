@@ -32,6 +32,26 @@ body {
   flex-shrink: 0;
 }
 #filename { font-size: 13px; font-weight: 600; color: #fff; font-family: 'JetBrains Mono', monospace; }
+#exif-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600;
+  color: #fbbf24; background: #1c1408; border: 1px solid #d97706;
+  padding: 2px 8px; border-radius: 4px; cursor: default;
+}
+.exif-tip { position: relative; display: inline-flex; align-items: center; color: #d97706; font-size: 12px; cursor: help; }
+.exif-tip-text {
+  display: none;
+  position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: 280px; background: #1a1a1a; border: 1px solid #d97706;
+  color: #e5e7eb; font-size: 11px; font-weight: 400; line-height: 1.5;
+  padding: 8px 10px; border-radius: 6px; z-index: 200;
+  white-space: normal; pointer-events: none;
+}
+.exif-tip-text::before {
+  content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-bottom-color: #d97706;
+}
+.exif-tip:hover .exif-tip-text { display: block; }
 #box-info { font-size: 12px; color: #bbb; }
 #progress { font-size: 12px; color: #aaa; background: #1e1e1e; padding: 3px 10px; border-radius: 10px; }
 

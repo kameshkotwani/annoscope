@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 from app.config import IMAGE_EXTS, config
-from app.database import get_db_state
+from app.database import get_seen
 
 
 class ActiveDataset:
@@ -13,7 +13,6 @@ class ActiveDataset:
         self.images_path: Optional[Path] = None
         self.labels_path: Optional[Path] = None
         self.class_names: Dict[int, str] = {}
-        self.reports_dir: Optional[Path] = None
         self.has_coco: bool = False
         self.all_images: List[str] = []
         self.seen: Set[str] = set()
@@ -29,13 +28,10 @@ class ActiveDataset:
         images_dir = cfg.images_path
         labels_dir = cfg.labels_path
         coco_path = cfg.coco_path
-        reports_dir = cfg.reports_path
         class_names = {int(k): v for k, v in cfg.classes.items()}
 
         if not images_dir.exists():
             raise FileNotFoundError(f"Images directory not found: {images_dir}")
-
-        reports_dir.mkdir(parents=True, exist_ok=True)
 
         # ── COCO ───────────────────────────────────────────────────────────────────
         ann_by_image_id: Dict[int, List[Any]] = {}
@@ -46,15 +42,17 @@ class ActiveDataset:
         if has_coco:
             import json
 
-            coco = json.loads(coco_path.read_text())
-            img_by_filename = {img["file_name"]: img for img in coco["images"]}
-            for ann in coco["annotations"]:
-                ann_by_image_id.setdefault(ann["image_id"], []).append(ann)
-            coco_categories = {cat["id"]: cat["name"] for cat in coco["categories"]}
+            try:
+                coco = json.loads(coco_path.read_text())
+                img_by_filename = {img["file_name"]: img for img in coco["images"]}
+                for ann in coco["annotations"]:
+                    ann_by_image_id.setdefault(ann["image_id"], []).append(ann)
+                coco_categories = {cat["id"]: cat["name"] for cat in coco["categories"]}
+            except (json.JSONDecodeError, KeyError) as e:
+                raise ValueError(f"Invalid COCO file {coco_path.name}: {e}") from e
 
         # ── review state (SQLite) ──────────────────────────────────────────────────
-        rows = get_db_state(slug)
-        seen = {r["filename"] for r in rows if r["seen"]}
+        seen = get_seen(slug)
 
         # ── image list ─────────────────────────────────────────────────────────────
         def _sort_key(f: str) -> tuple[int, int | str]:
@@ -72,7 +70,6 @@ class ActiveDataset:
         self.images_path = images_dir
         self.labels_path = labels_dir
         self.class_names = class_names
-        self.reports_dir = reports_dir
         self.has_coco = has_coco
         self.all_images = all_images
         self.seen = seen

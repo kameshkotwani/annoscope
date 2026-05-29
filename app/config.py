@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
 import yaml
+from pydantic import BaseModel, Field
 
 # Project root (one level above 'app')
 PROJ_ROOT = Path(__file__).resolve().parents[1]
@@ -27,7 +27,6 @@ class DatasetConfig(BaseModel):
     images: str
     labels: str
     coco: Optional[str] = None
-    reports: str
     classes: Dict[int, str] = Field(default_factory=dict)
 
     # Resolved absolute paths
@@ -42,10 +41,6 @@ class DatasetConfig(BaseModel):
     @property
     def coco_path(self) -> Optional[Path]:
         return PROJ_ROOT / self.coco if self.coco else None
-
-    @property
-    def reports_path(self) -> Path:
-        return PROJ_ROOT / self.reports
 
 
 class AppConfig(BaseModel):
