@@ -63,13 +63,13 @@ Annoscope fills that gap — purpose-built for reviewing and auditing existing Y
 ```bash
 uv sync
 cp datasets.yaml datasets.local.yaml   # edit paths for your machine
-annoscope run
+annoscope
 ```
 
 Or with custom host/port:
 
 ```bash
-annoscope run --host 0.0.0.0 --port 9000
+annoscope --host 0.0.0.0 --port 9000
 ```
 
 Open `http://localhost:8000`.

@@ -830,7 +830,13 @@ async function moveBox(box, newCx, newCy) {
             body:    JSON.stringify(payload),
         });
         const data = await res.json();
-        if (data.ok) { currentEdits = data.edits; redraw(); }
+        if (data.ok) {
+            currentEdits = data.edits;
+            if (isSyntheticCoco) {
+                currentCoco = synthesizeCocoFromYolo(currentYolo, currentImgWidth, currentImgHeight);
+            }
+            redraw();
+        }
     } catch (err) {
         console.error('Failed to move box:', err);
         box.cx = oldCx;
