@@ -4,7 +4,11 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
+from rich.console import Console
+from rich.panel import Panel
+
+_console = Console(stderr=True)
 
 # Project root (one level above 'app')
 PROJ_ROOT = Path(__file__).resolve().parents[1]
@@ -50,6 +54,8 @@ class AppConfig(BaseModel):
 def load_config(path: Path = CFG_PATH) -> AppConfig:
     with open(path) as f:
         data = yaml.safe_load(f)
+    if not data:
+        raise ValueError(f"Config file {path} is empty.")
     return AppConfig(**data)
 
 
@@ -57,9 +63,30 @@ def load_config(path: Path = CFG_PATH) -> AppConfig:
 try:
     config = load_config()
 except FileNotFoundError:
-    raise SystemExit(
-        f"ERROR: Dataset config not found at {CFG_PATH}\n"
-        "Create app/datasets.yaml (or app/datasets.local.yaml) before starting."
+    _console.print(
+        Panel(
+            f"[bold]Config file not found:[/bold] [yellow]{CFG_PATH}[/yellow]\n\n"
+            "See [cyan]datasets.yaml[/cyan] for an example.",
+            title="[red]Missing config[/red]",
+            border_style="red",
+        )
     )
+    raise SystemExit(1)
+except ValidationError as e:
+    _console.print(
+        Panel(
+            f"[bold]Config file:[/bold] [yellow]{CFG_PATH}[/yellow]\n\n" + str(e),
+            title="[red]Invalid config[/red]",
+            border_style="red",
+        )
+    )
+    raise SystemExit(1)
 except Exception as e:
-    raise SystemExit(f"ERROR: Failed to load dataset config: {e}")
+    _console.print(
+        Panel(
+            f"[bold]Config file:[/bold] [yellow]{CFG_PATH}[/yellow]\n\n[red]{e}[/red]",
+            title="[red]Failed to load config[/red]",
+            border_style="red",
+        )
+    )
+    raise SystemExit(1)
