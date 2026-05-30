@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Set
 
 from app.config import IMAGE_EXTS, config
 from app.database import get_seen
@@ -9,9 +9,9 @@ from app.database import get_seen
 
 class ActiveDataset:
     def __init__(self):
-        self.slug: str = ""
-        self.images_path: Optional[Path] = None
-        self.labels_path: Optional[Path] = None
+        self.slug: str
+        self.images_path: Path
+        self.labels_path: Path
         self.class_names: Dict[int, str] = {}
         self.has_coco: bool = False
         self.all_images: List[str] = []
@@ -84,6 +84,7 @@ class ActiveDataset:
             "images": self.all_images,
             "seen": sorted(list(self.seen)),
             "last_seen_index": max(seen_indices) if seen_indices else 0,
+            "classes": self.class_names,
         }
 
 

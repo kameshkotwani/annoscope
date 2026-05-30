@@ -52,6 +52,7 @@ class InitialState(BaseModel):
     images: List[str]
     seen: List[str]
     last_seen_index: int
+    classes: Dict[int, str] = {}
 
 
 class EditAction(BaseModel):
